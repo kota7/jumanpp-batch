@@ -62,7 +62,7 @@ Please also refer to [usage notebook](https://github.com/kota7/jumanpp-batch/blo
 from jumanpp_batch import jumanpp_batch, parse_outfiles
 texts = ["すもももももももものうち", "隣の客はよく柿食う客だ", "犬も歩けば棒に当たる",
          "伊香保温泉日本の名湯", "海賊王に俺はなる！"]
-outfiles = jumanpp_batch(texts, num_procs=4) 
+outfiles = jumanpp_batch(texts, num_procs=3) 
 print(outfiles)
 #['jumanpp-result_1.txt', 'jumanpp-result_2.txt', 'jumanpp-result_3.txt']
 ```
