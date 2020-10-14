@@ -14,6 +14,7 @@ setup(
     url='https://github.com/kota7/jumanpp-batch',
     #download_url='',
     long_description=readme,
+    long_description_content_type="text/markdown",
 
     #packages=[],
     py_modules=['jumanpp_batch'],
