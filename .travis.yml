@@ -1,0 +1,29 @@
+language: python
+python:
+  #- "2.6"
+  - "2.7"
+  #- "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+os:
+  - linux
+  #- osx
+
+# command to install dependencies
+before_install:
+  #- if [ "$TRAVIS_OS_NAME" = "linux" ]; then ;  fi
+  #- if [ "$TRAVIS_OS_NAME" = "osx" ]  ; then brew install mecab mecab-ipadic; fi  
+  - wget http://nlp.ist.i.kyoto-u.ac.jp/DLcounter/lime.cgi?down=http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz&name=jumanpp-1.02.tar.xz
+  - tar xJvf jumanpp-1.01.tar.xz && cd jumanpp-1.01 && ./configure && make && make install
+install:
+  - pip install jaconv
+  - pip install .
+  
+#  - pip install -r requirements.txt
+# command to run tests
+script:
+  - py.test -v tests 
