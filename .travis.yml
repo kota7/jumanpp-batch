@@ -17,8 +17,8 @@ os:
 before_install:
   #- if [ "$TRAVIS_OS_NAME" = "linux" ]; then ;  fi
   #- if [ "$TRAVIS_OS_NAME" = "osx" ]  ; then brew install mecab mecab-ipadic; fi  
-  - wget http://nlp.ist.i.kyoto-u.ac.jp/DLcounter/lime.cgi?down=http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz&name=jumanpp-1.02.tar.xz
-  - tar xJvf jumanpp-1.01.tar.xz && cd jumanpp-1.01 && ./configure && make && make install
+  - wget http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz
+  - tar xJvf jumanpp-1.01.tar.xz && cd jumanpp-1.02 && ./configure && make && make install
 install:
   - pip install jaconv
   - pip install .

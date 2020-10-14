@@ -2,6 +2,7 @@ jumanpp-batch
 =============
 
 **Apply JUMAN++ to batch input in parallel**
+[![Build Status](https://travis-ci.org/kota7/jumanpp-batch.svg?branch=master)](https://travis-ci.org/kota7/jumanpp-batch) [![PyPI Status](https://badge.fury.io/py/jumanpp-batch.svg)](https://badge.fury.io/py/jumanpp-batch)
 
 
 This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) software by providing the functionalities to apply the command (1) to batch input (2) and in parallel.
