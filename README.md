@@ -1,7 +1,10 @@
-jumanpp-batch | Apply JUMAN++ to a batch input in parallel
+jumanpp-batch
 =============
 
-This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) software by providing the functionalities to apply the command (1) to a batch input (2) and in parallel.
+**Apply JUMAN++ to batch input in parallel**
+
+
+This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) software by providing the functionalities to apply the command (1) to batch input (2) and in parallel.
 
 ## Installation
 
@@ -58,8 +61,9 @@ Please also refer to [usage notebook](notebook/jumanpp-batch - Apply JUMAN++ to 
 from jumanpp_batch import jumanpp_batch, parse_outfiles
 texts = ["すもももももももものうち", "隣の客はよく柿食う客だ", "犬も歩けば棒に当たる",
          "伊香保温泉日本の名湯", "海賊王に俺はなる！"]
-outfiles = jumanpp_batch(texts, num_processes=4) 
+outfiles = jumanpp_batch(texts, num_procs=4) 
 print(outfiles)
+#['jumanpp-result_1.txt', 'jumanpp-result_2.txt', 'jumanpp-result_3.txt']
 ```
 
 The results are saved in files.
@@ -106,5 +110,9 @@ for id_, tokens in parse_outfiles(outfiles,
 #['隣 (となり)', '客 (きゃく)', '柿 (かき)', '食う (くう)', '客 (きゃく)']
 #***
 #['犬 (いぬ)', '歩く (あるけば)', '棒 (ぼう)', '当たる (あたる)']
-#***    
+#***
+#['伊香保 (伊香保)', '温泉 (おんせん)', '日本 (にっぽん)', '湯 (ゆ)']
+#***
+#['海賊 (かいぞく)', '王 (おう)', '俺 (おれ)', 'なる (なる)']
+#***
 ```

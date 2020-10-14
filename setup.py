@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-
+import os
+readmefile = os.path.join(os.path.dirname(__file__), "README.md")
+with open(readmefile) as f:
+    readme = f.read()
 setup(
     name='jumanpp-batch',
     version='0.1.0',
@@ -10,6 +13,7 @@ setup(
     author_email='kmori05@gmail.com',
     url='https://github.com/kota7/jumanpp-batch',
     #download_url='',
+    long_description=readme,
 
     #packages=[],
     py_modules=['jumanpp_batch'],
