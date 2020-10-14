@@ -18,7 +18,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -y build-essential make libboost-all-dev google-perftools; fi
   #- if [ "$TRAVIS_OS_NAME" = "osx" ]  ; then brew install mecab mecab-ipadic; fi  
   - wget http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz
-  - tar xJvf jumanpp-1.02.tar.xz && cd jumanpp-1.02 && ./configure && make && make install
+  - tar xJvf jumanpp-1.02.tar.xz && cd jumanpp-1.02 && ./configure && make && sudo make install
 install:
   - pip install jaconv
   - pip install .
