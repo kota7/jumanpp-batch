@@ -53,7 +53,7 @@ pip install -U ./jumanpp-batch
 
 ## Usage
 
-Please also refer to [usage notebook](notebook/jumanpp-batch - Apply JUMAN++ to a batch input in parallel.ipynb) for the detailed description of the library.
+Please also refer to [usage notebook](https://github.com/kota7/jumanpp-batch/blob/master/notebook/jumanpp-batch%20-%20Apply%20jumanpp%20to%20batch%20input%20in%20parallel.ipynb) for the detailed description of the library.
 
 ### Execute JUMAN++ jobs
 
