@@ -2,6 +2,7 @@ jumanpp-batch
 =============
 
 **Apply JUMAN++ to batch input in parallel**
+
 [![Build Status](https://travis-ci.org/kota7/jumanpp-batch.svg?branch=master)](https://travis-ci.org/kota7/jumanpp-batch) [![PyPI Status](https://badge.fury.io/py/jumanpp-batch.svg)](https://badge.fury.io/py/jumanpp-batch)
 
 

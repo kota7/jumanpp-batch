@@ -7,7 +7,7 @@ with open(readmefile) as f:
     readme = f.read()
 setup(
     name='jumanpp-batch',
-    version='0.1.1',
+    version='0.1.2dev',
     description='Apply juman++ to batch inputs in parallel',
     author='Kota Mori', 
     author_email='kmori05@gmail.com',
