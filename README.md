@@ -9,7 +9,7 @@ This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.
 
 ### Requirement
 
-- Python 3.4+
+- Python 2.7+, 3.4+
 - [JUMAN++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) 1.0.2
 
 
