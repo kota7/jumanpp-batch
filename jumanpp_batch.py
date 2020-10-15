@@ -5,12 +5,18 @@ import re
 import math
 import time
 import subprocess
-import shlex
+import sys
 import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count
 import jaconv
+# shlex does not work for unicode on python2
+# use ushlex instead
+if sys.version_info[0] == 2:
+    import ushlex as shlex
+else:
+    import shlex
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -90,7 +96,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
     logger.debug("Number of processes: %s", num_procs)
     
     n = len(texts)
-    n_each = math.ceil(n / num_procs)
+    n_each = int(math.ceil(n / num_procs))
     logger.debug("Total inputs: %s, inputs per proc: %s", n, n_each)
     
     if preprocess == "default":
@@ -109,7 +115,11 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
             # no more input
             break
         outfile = outfile_base.format(i+1)
-        os.makedirs(os.path.abspath(os.path.dirname(outfile)), exist_ok=True)
+        dirpath = os.path.abspath(os.path.dirname(outfile))
+        assert not os.path.isfile(dirpath), "`{}` is a file".format(dirpath)
+        if not os.path.isdir(dirpath):
+            os.makedirs(dirpath)
+            logger.debug("`%s` has been created", dirpath)
         infile = outfile + ".in"
         logger.debug("Writing texts %d to %d into `%s`", i1, i2, infile)
         with open(infile, "wb") as f:

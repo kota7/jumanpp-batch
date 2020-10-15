@@ -3,10 +3,27 @@
 
 import unittest
 import os
-import shlex
+import sys
 import subprocess
-from tempfile import TemporaryDirectory
 from jumanpp_batch import jumanpp_batch, parse_outfiles
+try:
+    from tempfile import TemporaryDirectory
+except:
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    class TemporaryDirectory:
+        def __enter__(self):
+            self.dirname = mkdtemp()
+            return self.dirname
+
+        def __exit__(self, type, value, traceback):
+            rmtree(self.dirname)
+if sys.version_info[0] == 2:
+    import ushlex as shlex
+else:
+    import shlex
+from logging import getLogger
+
 
 def join_files(outfiles):
     o = b""
@@ -63,6 +80,16 @@ class TestJumanpp(unittest.TestCase):
             h1 = compute_hash(files1)
             h2 = compute_hash(files2)
             h3 = compute_hash(files3)
+            #o1 = join_files(files1)
+            #o2 = join_files(files2)
+            #o3 = join_files(files3)
+        #print(files1)
+        #print(files2)
+        #print(files3)
+        #compare(o1.decode("utf8"), o2.decode("utf8"))
+        #compare(o2.decode("utf8"), o3.decode("utf8"))
+        #print(len(o1), len(o2), len(o3))
+        #print(len(o1.decode("utf8")), len(o2.decode("utf8")), len(o3.decode("utf8")))
         self.assertEqual(h1, h2)
         self.assertEqual(h2, h3)
 
@@ -88,11 +115,11 @@ class TestJumanpp(unittest.TestCase):
 
 class TestOutParser(unittest.TestCase):
     def test_token_attributes(self):
-        s = ["素敵な絵本"]
+        s = [u"素敵な絵本"]
         ans = u"""
         素敵な すてきな 素敵だ 形容詞 3 * 0 ナ形容詞 21 ダ列基本連体形 3 "代表表記:素敵だ/すてきだ"
         絵本 えほん 絵本 名詞 6 普通名詞 1 * 0 * 0 "代表表記:絵本/えほん カテゴリ:人工物-その他;抽象物 ドメイン:文化・芸術;教育・学習"
-        """.strip().split("\n")
+        """.strip().split(u"\n")
         ans = [shlex.split(a.strip()) for a in ans]
         ans = [a + [False] for a in ans]  # is_alternative = true
         
@@ -101,7 +128,8 @@ class TestOutParser(unittest.TestCase):
                                   num_procs=1, check_interval=1)
             for _, tokens in parse_outfiles(files):
                 ans2 = tokens
-
+            with open(files[0], "rb") as f:
+                print(f.read().decode("utf8"))
         self.assertEqual(len(ans), len(ans2))
         for a, b in zip(ans, ans2):
             self.assertEqual(len(a), len(b))
