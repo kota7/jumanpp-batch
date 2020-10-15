@@ -169,8 +169,8 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
                         for line in f:
                             if line.decode(encoding).strip() == "EOS":
                                 n_finished[i] += 1
-                logger.debug("Job #%d. Progress: %d/%d (%.1f%%)",
-                             i+1, n_finished[i], p["count"], 100*n_finished[i]/p["count"])
+                logger.info("Job #%d. Progress: %d/%d (%.1f%%)",
+                            i+1, n_finished[i], p["count"], 100*n_finished[i]/p["count"])
             n_cur = sum(n_finished)
             t_cur = datetime.now()
             if start["t0"] is not None:
