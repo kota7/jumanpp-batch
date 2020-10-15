@@ -7,13 +7,33 @@ jumanpp-batch
 
 This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) software by providing the functionalities to apply the command (1) to batch input (2) and in parallel.
 
+### Requirement
+
+- Python 3.4+
+- [JUMAN++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) 1.0.2
+
+
 ## Installation
+
+
 
 ### JUMAN++
 
 Refer to the official document for the details ([Manual](http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-manual-1.01.pdf)).
 
-As of this writing, one can install the v1.0.2 by the following commands:
+Requirements:
+
+- GCC 4.9+
+- Boost 1.57+
+- (Optional) gperftool
+
+On ubuntu, these can be installed by:
+
+```bash
+sudo apt-get install build-essential libboost-all-dev google-perftools
+```
+
+As of this writing, JUMAN++ v1.0.2 can be installed by the following command:
 
 ```bash
 wget http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz
