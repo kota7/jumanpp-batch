@@ -68,8 +68,9 @@ class TestJumanpp(unittest.TestCase):
     def test_nproc_independence(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
-             u"犬も歩けば棒に当たる"] * 50
-        
+             u"犬も歩けば棒に当たる"] * 19
+        # setting len(s) not devisible by the num_procs
+        # to test the consistency of input split
         with TemporaryDirectory() as d:
             files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
                                    num_procs=1, check_interval=1)
@@ -80,23 +81,13 @@ class TestJumanpp(unittest.TestCase):
             h1 = compute_hash(files1)
             h2 = compute_hash(files2)
             h3 = compute_hash(files3)
-            #o1 = join_files(files1)
-            #o2 = join_files(files2)
-            #o3 = join_files(files3)
-        #print(files1)
-        #print(files2)
-        #print(files3)
-        #compare(o1.decode("utf8"), o2.decode("utf8"))
-        #compare(o2.decode("utf8"), o3.decode("utf8"))
-        #print(len(o1), len(o2), len(o3))
-        #print(len(o1.decode("utf8")), len(o2.decode("utf8")), len(o3.decode("utf8")))
         self.assertEqual(h1, h2)
         self.assertEqual(h2, h3)
 
     def test_nproc_independence_with_id(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
-             u"犬も歩けば棒に当たる"] * 20
+             u"犬も歩けば棒に当たる"] * 17
         ids = list(range(len(s)))
         
         with TemporaryDirectory() as d:
@@ -112,6 +103,20 @@ class TestJumanpp(unittest.TestCase):
         self.assertEqual(h1, h2)
         self.assertEqual(h2, h3)
 
+    def test_nproc_larger_than_input_size(self):
+        s = [u"すもももももももものうち",
+             u"隣の客はよく柿食う客だ",
+             u"犬も歩けば棒に当たる"]
+        ids = list(range(len(s)))
+        
+        with TemporaryDirectory() as d:
+            files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
+                                   num_procs=1, check_interval=1)
+            files2 = jumanpp_batch(s, outfile_base=os.path.join(d, "p4_{}.txt"),
+                                   num_procs=4, check_interval=1)
+            h1 = compute_hash(files1)
+            h2 = compute_hash(files2)
+        self.assertEqual(h1, h2)
 
 class TestOutParser(unittest.TestCase):
     def test_token_attributes(self):
