@@ -3,10 +3,27 @@
 
 import unittest
 import os
-import shlex
+import sys
 import subprocess
-from tempfile import TemporaryDirectory
 from jumanpp_batch import jumanpp_batch, parse_outfiles
+try:
+    from tempfile import TemporaryDirectory
+except:
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    class TemporaryDirectory:
+        def __enter__(self):
+            self.dirname = mkdtemp()
+            return self.dirname
+
+        def __exit__(self, type, value, traceback):
+            rmtree(self.dirname)
+if sys.version_info[0] == 2:
+    import ushlex as shlex
+else:
+    import shlex
+from logging import getLogger
+
 
 def join_files(outfiles):
     o = b""
@@ -51,8 +68,9 @@ class TestJumanpp(unittest.TestCase):
     def test_nproc_independence(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
-             u"犬も歩けば棒に当たる"] * 50
-        
+             u"犬も歩けば棒に当たる"] * 19
+        # setting len(s) not devisible by the num_procs
+        # to test the consistency of input split
         with TemporaryDirectory() as d:
             files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
                                    num_procs=1, check_interval=1)
@@ -69,7 +87,7 @@ class TestJumanpp(unittest.TestCase):
     def test_nproc_independence_with_id(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
-             u"犬も歩けば棒に当たる"] * 20
+             u"犬も歩けば棒に当たる"] * 17
         ids = list(range(len(s)))
         
         with TemporaryDirectory() as d:
@@ -85,14 +103,28 @@ class TestJumanpp(unittest.TestCase):
         self.assertEqual(h1, h2)
         self.assertEqual(h2, h3)
 
+    def test_nproc_larger_than_input_size(self):
+        s = [u"すもももももももものうち",
+             u"隣の客はよく柿食う客だ",
+             u"犬も歩けば棒に当たる"]
+        ids = list(range(len(s)))
+        
+        with TemporaryDirectory() as d:
+            files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
+                                   num_procs=1, check_interval=1)
+            files2 = jumanpp_batch(s, outfile_base=os.path.join(d, "p4_{}.txt"),
+                                   num_procs=4, check_interval=1)
+            h1 = compute_hash(files1)
+            h2 = compute_hash(files2)
+        self.assertEqual(h1, h2)
 
 class TestOutParser(unittest.TestCase):
     def test_token_attributes(self):
-        s = ["素敵な絵本"]
+        s = [u"素敵な絵本"]
         ans = u"""
         素敵な すてきな 素敵だ 形容詞 3 * 0 ナ形容詞 21 ダ列基本連体形 3 "代表表記:素敵だ/すてきだ"
         絵本 えほん 絵本 名詞 6 普通名詞 1 * 0 * 0 "代表表記:絵本/えほん カテゴリ:人工物-その他;抽象物 ドメイン:文化・芸術;教育・学習"
-        """.strip().split("\n")
+        """.strip().split(u"\n")
         ans = [shlex.split(a.strip()) for a in ans]
         ans = [a + [False] for a in ans]  # is_alternative = true
         
@@ -101,7 +133,8 @@ class TestOutParser(unittest.TestCase):
                                   num_procs=1, check_interval=1)
             for _, tokens in parse_outfiles(files):
                 ans2 = tokens
-
+            with open(files[0], "rb") as f:
+                print(f.read().decode("utf8"))
         self.assertEqual(len(ans), len(ans2))
         for a, b in zip(ans, ans2):
             self.assertEqual(len(a), len(b))

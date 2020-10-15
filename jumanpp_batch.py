@@ -5,12 +5,18 @@ import re
 import math
 import time
 import subprocess
-import shlex
+import sys
 import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
 from multiprocessing import cpu_count
 import jaconv
+# shlex does not work for unicode on python2
+# use ushlex instead
+if sys.version_info[0] == 2:
+    import ushlex as shlex
+else:
+    import shlex
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -90,7 +96,9 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
     logger.debug("Number of processes: %s", num_procs)
     
     n = len(texts)
-    n_each = math.ceil(n / num_procs)
+    n_each = int(math.ceil(1.0 * n / num_procs))
+    # On python 2, we need to make sure the division computes in float
+    # Otherwise the value could be rounded down automatically
     logger.debug("Total inputs: %s, inputs per proc: %s", n, n_each)
     
     if preprocess == "default":
@@ -102,6 +110,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
         texts = [u"#{}\n{}".format(i,t) for t,i in zip(texts, ids)]
 
     procs = []
+    n_finished = 0  # track the number of texts fed into jumanpp for debugging 
     for i in range(num_procs):
         i1 = n_each * i
         i2 = min(i1 + n_each, n)
@@ -109,12 +118,15 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
             # no more input
             break
         outfile = outfile_base.format(i+1)
-        os.makedirs(os.path.abspath(os.path.dirname(outfile)), exist_ok=True)
+        dirpath = os.path.abspath(os.path.dirname(outfile))
+        assert not os.path.isfile(dirpath), "`{}` is a file".format(dirpath)
+        if not os.path.isdir(dirpath):
+            os.makedirs(dirpath)
+            logger.debug("`%s` has been created", dirpath)
         infile = outfile + ".in"
         logger.debug("Writing texts %d to %d into `%s`", i1, i2, infile)
         with open(infile, "wb") as f:
             f.write(u"\n".join(texts[i1:i2]).encode(encoding))
-        
         
         logger.info("Start juman++ job #%d. Outfile = `%s`", i+1, outfile)
         command = [jumanpp_command] + list(jumanpp_args)
@@ -123,7 +135,10 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
             p = subprocess.Popen(command, stdin=f, stdout=g)
         logger.debug("Job #%d. Pid: %s", i+1, p.pid)
         procs.append({"proc": p, "infile": infile, "outfile": outfile, "count": (i2-i1)})
-
+        
+        n_finished += (i2 - i1)
+        logger.debug("In total, %d / %d inputs have been fed into jumanpp", n_finished, n)
+    assert n == n_finished, "Total texts analyzed is {}, where the input size is {}".format(n_finished, n)
     # wait until all procs finish
     finished = [False for _ in procs]
     start = {"t0": None, "n0": None}  # used by progress report
