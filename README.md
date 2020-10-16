@@ -11,7 +11,7 @@ This python package facilitates the usage of [juman++](http://nlp.ist.i.kyoto-u.
 ### Requirement
 
 - Python 2.7+, 3.4+
-- [JUMAN++](http://nlp.ist.i.kyoto-u.ac.jp/index.php?JUMAN++) 1.0.2, 2.0.0
+- [JUMAN++](https://github.com/ku-nlp/jumanpp) 1.0.2, 2.0.0
 
 
 ## Installation
