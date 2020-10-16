@@ -21,7 +21,7 @@ before_install:
   - wget http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz
   - tar xJvf jumanpp-1.02.tar.xz && cd jumanpp-1.02 && ./configure && make && sudo make install && cd ../
   # install jumanpp 2.0.0 as jumanpp2
-  - [VERSION="2.0.0-rc3"
+  - VERSION="2.0.0-rc3"
   - wget https://github.com/ku-nlp/jumanpp/releases/download/v2.0.0-rc3/jumanpp-$VERSION.tar.xz
   - tar xfv jumanpp-$VERSION.tar.xz && cd jumanpp-$VERSION
   - mkdir bld && cd bld && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD && make install 
