@@ -68,6 +68,8 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
       texts: List of strings to be analyzed by juman++.
       ids: If not none, a list of IDs for the texts.
            Must be the same length as texts.
+           Ids can be of any type but converted to string during the process.
+           If it is string, it cannot contain spaces.
       num_procs: Integer. Number of parallel processes.
                  If nonpositive, set to the number of available CPUs.
       preprocess: Function str -> str, preprocessor for input texts.
@@ -94,6 +96,12 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
     if num_procs < 1:
         num_procs = cpu_count()
     logger.debug("Number of processes: %s", num_procs)
+    
+    if ids is not None:
+        assert len(texts) == len(ids), "texts and ids must have the same length"
+        for i in ids:
+            if type(i) == str and i.find(" ") >= 0:
+                raise ValueError("Invalid id `{}`: Space is not allowed in ids".format(i))
     
     n = len(texts)
     n_each = int(math.ceil(1.0 * n / num_procs))
@@ -312,7 +320,7 @@ def get_documents(outfile, include_eos=False, encoding="utf8"):
                 continue
             # find ID 
             if doc == "":
-                r = re.match(r"# (.*) JUMAN\+\+", line)
+                r = re.match(r"# ([^ \n]*)", line)
                 if r is not None:
                     id_ = r.group(1)
             if line.strip() == u"EOS":

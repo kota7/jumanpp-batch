@@ -198,12 +198,9 @@ class TestOutParser(unittest.TestCase):
         for a, b in zip(s, s2):
             self.assertEqual(a, b)
         
-        # ID functionality works only with jumanpp ver.1
-        # because comment printing function is dropped in ver.2
-        if self.jumanpp_ver.startswith(u"1."):
-            self.assertEqual(len(ids), len(ids2))
-            for a, b in zip(ids, ids2):
-                self.assertEqual(a, b)
+        self.assertEqual(len(ids), len(ids2))
+        for a, b in zip(ids, ids2):
+            self.assertEqual(a, b)
 
     def test_poc_filter(self):
         # TODO. This test depends on juman++ algorithm
