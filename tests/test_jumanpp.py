@@ -4,6 +4,7 @@
 import unittest
 import os
 import sys
+import re
 import subprocess
 from jumanpp_batch import jumanpp_batch, parse_outfiles
 try:
@@ -22,8 +23,7 @@ if sys.version_info[0] == 2:
     import ushlex as shlex
 else:
     import shlex
-from logging import getLogger
-
+from parameterized import parameterized_class
 
 def join_files(outfiles):
     o = b""
@@ -34,18 +34,41 @@ def join_files(outfiles):
     
 def compute_hash(outfiles):
     return hash(join_files(outfiles))
-    
+
+# Search for jumanpp command available on the system
+# We search `jumanpp`, `jumanpp1`, `jumanpp2`
+available_commands = []
+for v in ("", 1, 2):
+    command = "jumanpp" + str(v)
+    try:
+        p = subprocess.Popen([command, "-v"], stdout=subprocess.PIPE)
+    except OSError:
+        # command not exists
+        continue
+    o, _ = p.communicate()
+    o = o.decode()
+    if o.lower().startswith("juman++"):
+        r = re.search(r"[0-9][\.0-9]+", o)
+        if r:
+            version = o[r.start():r.end()]
+        available_commands.append((command, version))
+class_params = [{"jumanpp_command": c, "jumanpp_ver": v} for c, v in available_commands]
+
+# add `self.jumanpp_command` to the object dynamically
+@parameterized_class(class_params)
 class TestJumanpp(unittest.TestCase):
+
     def test_jumanpp(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
              u"犬も歩けば棒に当たる"]
         # obtain reference result
-        p = subprocess.Popen(["jumanpp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        p = subprocess.Popen([self.jumanpp_command], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         o, _ = p.communicate(u"\n".join(s).encode("utf8"))
 
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   check_interval=1)
             h2 = compute_hash(files)
         self.assertEqual(hash(o), h2)
@@ -56,15 +79,16 @@ class TestJumanpp(unittest.TestCase):
              u"犬も歩けば棒に当たる"]
         ids = [1, 2, 3]
         # obtain reference result
-        p = subprocess.Popen(["jumanpp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        x = [u"#{}\n{}".format(b, a) for a, b in zip(s, ids)]
+        p = subprocess.Popen([self.jumanpp_command], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        x = [u"# {}\n{}".format(b, a) for a, b in zip(s, ids)]
         o, _ = p.communicate(u"\n".join(x).encode("utf8"))
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, ids, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   check_interval=1)
             h2 = compute_hash(files)
         self.assertEqual(hash(o), h2)
-    
+
     def test_nproc_independence(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
@@ -72,11 +96,14 @@ class TestJumanpp(unittest.TestCase):
         # setting len(s) not devisible by the num_procs
         # to test the consistency of input split
         with TemporaryDirectory() as d:
-            files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
+            files1 = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p1_{}.txt"),
                                    num_procs=1, check_interval=1)
-            files2 = jumanpp_batch(s, outfile_base=os.path.join(d, "p2_{}.txt"),
+            files2 = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p2_{}.txt"),
                                    num_procs=2, check_interval=1)
-            files3 = jumanpp_batch(s, outfile_base=os.path.join(d, "p4_{}.txt"),
+            files3 = jumanpp_batch(s, jumanpp_command=self.jumanpp_command, 
+                                   outfile_base=os.path.join(d, "p4_{}.txt"),
                                    num_procs=4, check_interval=1)
             h1 = compute_hash(files1)
             h2 = compute_hash(files2)
@@ -91,11 +118,14 @@ class TestJumanpp(unittest.TestCase):
         ids = list(range(len(s)))
         
         with TemporaryDirectory() as d:
-            files1 = jumanpp_batch(s, ids, outfile_base=os.path.join(d, "p1_{}.txt"),
+            files1 = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p1_{}.txt"),
                                    num_procs=1, check_interval=1)
-            files2 = jumanpp_batch(s, ids, outfile_base=os.path.join(d, "p2_{}.txt"),
+            files2 = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p2_{}.txt"),
                                    num_procs=2, check_interval=1)
-            files3 = jumanpp_batch(s, ids, outfile_base=os.path.join(d, "p4_{}.txt"),
+            files3 = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p4_{}.txt"),
                                    num_procs=4, check_interval=1)
             h1 = compute_hash(files1)
             h2 = compute_hash(files2)
@@ -110,43 +140,38 @@ class TestJumanpp(unittest.TestCase):
         ids = list(range(len(s)))
         
         with TemporaryDirectory() as d:
-            files1 = jumanpp_batch(s, outfile_base=os.path.join(d, "p1_{}.txt"),
+            files1 = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p1_{}.txt"),
                                    num_procs=1, check_interval=1)
-            files2 = jumanpp_batch(s, outfile_base=os.path.join(d, "p4_{}.txt"),
+            files2 = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                   outfile_base=os.path.join(d, "p4_{}.txt"),
                                    num_procs=4, check_interval=1)
             h1 = compute_hash(files1)
             h2 = compute_hash(files2)
         self.assertEqual(h1, h2)
 
+# add `self.jumanpp_command` to the object dynamically
+@parameterized_class(class_params)
 class TestOutParser(unittest.TestCase):
     def test_token_attributes(self):
-        s = [u"素敵な絵本"]
-        ans = u"""
-        素敵な すてきな 素敵だ 形容詞 3 * 0 ナ形容詞 21 ダ列基本連体形 3 "代表表記:素敵だ/すてきだ"
-        絵本 えほん 絵本 名詞 6 普通名詞 1 * 0 * 0 "代表表記:絵本/えほん カテゴリ:人工物-その他;抽象物 ドメイン:文化・芸術;教育・学習"
-        """.strip().split(u"\n")
-        ans = [shlex.split(a.strip()) for a in ans]
-        ans = [a + [False] for a in ans]  # is_alternative = true
-        
+        # actual attributes depends on the dictionary and algorithm
+        # we just test the number of attributes should equal (12 + 1)
+        s = [u"先生とお友達", u"あいさつしよう", u"おはよう"]
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   num_procs=1, check_interval=1)
             for _, tokens in parse_outfiles(files):
-                ans2 = tokens
-            with open(files[0], "rb") as f:
-                print(f.read().decode("utf8"))
-        self.assertEqual(len(ans), len(ans2))
-        for a, b in zip(ans, ans2):
-            self.assertEqual(len(a), len(b))
-            for c, d in zip(a, b):
-                self.assertEqual(c, d)
+                for token in tokens:
+                    self.assertEqual(len(token), 13, msg=token)
 
     def test_surface(self):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
              u"犬も歩けば棒に当たる"]
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   num_procs=1, check_interval=1)
             s2 = []
             for _, tokens in parse_outfiles(files, format_func=lambda x: x.surface):
@@ -159,25 +184,31 @@ class TestOutParser(unittest.TestCase):
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
              u"犬も歩けば棒に当たる"]
-        ids = [8, 7, 5]
+        ids = ["8", "7", "5"]
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, ids, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   num_procs=1, check_interval=1)
             ids2 = []
             s2 = []
             for i, tokens in parse_outfiles(files, format_func=lambda x: x.surface):
                 print(tokens)
-                ids2.append(int(i))
+                ids2.append(i)
                 s2.append("".join(tokens))
         self.assertEqual(len(s), len(s2))
         for a, b in zip(s, s2):
             self.assertEqual(a, b)
-
-        self.assertEqual(len(ids), len(ids2))
-        for a, b in zip(ids, ids2):
-            self.assertEqual(a, b)
+        
+        # ID functionality works only with jumanpp ver.1
+        # because comment printing function is dropped in ver.2
+        if self.jumanpp_ver.startswith("1."):
+            self.assertEqual(len(ids), len(ids2))
+            for a, b in zip(ids, ids2):
+                self.assertEqual(a, b)
 
     def test_poc_filter(self):
+        # TODO. This test depends on juman++ algorithm
+        #       perhaps not valid as a test for this package
         s = [u"すもももももももものうち",
              u"隣の客はよく柿食う客だ",
              u"犬も歩けば棒に当たる"]
@@ -185,7 +216,8 @@ class TestOutParser(unittest.TestCase):
                  [u"隣", u"客", u"柿", u"客"],
                  [u"犬", u"棒"]]
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   num_procs=1, check_interval=1)
             nouns2 = []
             for i, tokens in parse_outfiles(files, format_func=lambda x: x.surface,
@@ -202,7 +234,8 @@ class TestOutParser(unittest.TestCase):
                [u"よく", u"食う"],
                [u"歩けば", u"当たる"]]
         with TemporaryDirectory() as d:
-            files = jumanpp_batch(s, outfile_base=os.path.join(d, "{}.txt"),
+            files = jumanpp_batch(s, jumanpp_command=self.jumanpp_command,
+                                  outfile_base=os.path.join(d, "{}.txt"),
                                   num_procs=1, check_interval=1)
             ans2 = []
             for i, tokens in parse_outfiles(files, format_func=lambda x: x.surface,
@@ -213,7 +246,8 @@ class TestOutParser(unittest.TestCase):
             self.assertEqual(len(a), len(b))
             for c, d in zip(a, b):
                 self.assertEqual(c, d)
-        
+
+
 if __name__ == '__main__':
     unittest.main()
 

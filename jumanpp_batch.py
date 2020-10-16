@@ -107,7 +107,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
         logger.debug("Preprocessing input texts")
         texts = [preprocess(t) for t in texts]
     if ids is not None:
-        texts = [u"#{}\n{}".format(i,t) for t,i in zip(texts, ids)]
+        texts = [u"# {}\n{}".format(i,t) for t,i in zip(texts, ids)]
 
     procs = []
     n_finished = 0  # track the number of texts fed into jumanpp for debugging 
@@ -312,7 +312,7 @@ def get_documents(outfile, include_eos=False, encoding="utf8"):
                 continue
             # find ID 
             if doc == "":
-                r = re.match(r"#(.*) JUMAN\+\+", line)
+                r = re.match(r"# (.*) JUMAN\+\+", line)
                 if r is not None:
                     id_ = r.group(1)
             if line.strip() == u"EOS":

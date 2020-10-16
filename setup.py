@@ -19,7 +19,7 @@ setup(
     #packages=[],
     py_modules=['jumanpp_batch'],
     install_requires=['jaconv', 'ushlex'],
-    test_require=[],
+    test_require=['parameterized'],
     package_data={},
     entry_points={},
     
