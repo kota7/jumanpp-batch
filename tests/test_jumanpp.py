@@ -150,6 +150,32 @@ class TestJumanpp(unittest.TestCase):
             h2 = compute_hash(files2)
         self.assertEqual(h1, h2)
 
+    def test_invalid_ids(self):
+        s = [u"すもももももももものうち",
+             u"隣の客はよく柿食う客だ",
+             u"犬も歩けば棒に当たる"]
+
+        with TemporaryDirectory() as d:
+            ids = [1, "kaki", "inu bou"]  # space not allowed
+            with self.assertRaises(ValueError):
+                files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                      outfile_base=os.path.join(d, "p1_{}.txt"))
+            
+            ids = [1, "kaki", " inubou"]  # space not allowed
+            with self.assertRaises(ValueError):
+                files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                      outfile_base=os.path.join(d, "p1_{}.txt"))
+
+            ids = [1, "kaki ", "inubou"]  # space not allowed
+            with self.assertRaises(ValueError):
+                files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                      outfile_base=os.path.join(d, "p1_{}.txt"))
+
+            ids = [" ", "kaki", "inubou"]  # space not allowed
+            with self.assertRaises(ValueError):
+                files = jumanpp_batch(s, ids, jumanpp_command=self.jumanpp_command,
+                                      outfile_base=os.path.join(d, "p1_{}.txt"))
+
 # add `self.jumanpp_command` to the object dynamically
 @parameterized_class(class_params)
 class TestOutParser(unittest.TestCase):

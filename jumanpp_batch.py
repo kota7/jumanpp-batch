@@ -102,7 +102,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
         ids = [u"{}".format(i) for i in ids]
         for i in ids:
             if i.find(u" ") >= 0:
-                raise ValueError(u"Invalid id `{}`: Space is not allowed in ids".format(i))
+                raise ValueError(u"Invalid id '{}': Space is not allowed in ids".format(i))
     
     n = len(texts)
     n_each = int(math.ceil(1.0 * n / num_procs))
