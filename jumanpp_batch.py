@@ -39,7 +39,7 @@ class Preprocessor:
         if (self.add_space == "all" or 
            (self.add_space == "empty" and len(text) == 0)):
             # add a space to avoid error due to empty input
-            text = text + " "
+            text = text + u" "
         if len(self.zenkaku) > 0:
             kwargs = {"ascii": False, "digit": False, "kana": False}
             for v in self.zenkaku:
@@ -95,24 +95,25 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
     """
     if num_procs < 1:
         num_procs = cpu_count()
-    logger.debug("Number of processes: %s", num_procs)
+    logger.debug(u"Number of processes: %s", num_procs)
     
     if ids is not None:
-        assert len(texts) == len(ids), "texts and ids must have the same length"
+        assert len(texts) == len(ids), u"texts and ids must have the same length"
+        ids = [u"{}".format(i) for i in ids]
         for i in ids:
-            if type(i) == str and i.find(" ") >= 0:
-                raise ValueError("Invalid id `{}`: Space is not allowed in ids".format(i))
+            if i.find(u" ") >= 0:
+                raise ValueError(u"Invalid id `{}`: Space is not allowed in ids".format(i))
     
     n = len(texts)
     n_each = int(math.ceil(1.0 * n / num_procs))
     # On python 2, we need to make sure the division computes in float
     # Otherwise the value could be rounded down automatically
-    logger.debug("Total inputs: %s, inputs per proc: %s", n, n_each)
+    logger.debug(u"Total inputs: %s, inputs per proc: %s", n, n_each)
     
     if preprocess == "default":
         preprocess =  Preprocessor()
     if preprocess is not None:
-        logger.debug("Preprocessing input texts")
+        logger.debug(u"Preprocessing input texts")
         texts = [preprocess(t) for t in texts]
     if ids is not None:
         texts = [u"# {}\n{}".format(i,t) for t,i in zip(texts, ids)]
@@ -130,22 +131,22 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
         assert not os.path.isfile(dirpath), "`{}` is a file".format(dirpath)
         if not os.path.isdir(dirpath):
             os.makedirs(dirpath)
-            logger.debug("`%s` has been created", dirpath)
+            logger.debug(u"`%s` has been created", dirpath)
         infile = outfile + ".in"
-        logger.debug("Writing texts %d to %d into `%s`", i1, i2, infile)
+        logger.debug(u"Writing texts %d to %d into `%s`", i1, i2, infile)
         with open(infile, "wb") as f:
             f.write(u"\n".join(texts[i1:i2]).encode(encoding))
         
-        logger.info("Start juman++ job #%d. Outfile = `%s`", i+1, outfile)
+        logger.info(u"Start juman++ job #%d. Outfile = `%s`", i+1, outfile)
         command = [jumanpp_command] + list(jumanpp_args)
         logger.debug("Command: `%s`", command)
         with open(infile, "rb") as f, open(outfile, "wb") as g:
             p = subprocess.Popen(command, stdin=f, stdout=g)
-        logger.debug("Job #%d. Pid: %s", i+1, p.pid)
+        logger.debug(u"Job #%d. Pid: %s", i+1, p.pid)
         procs.append({"proc": p, "infile": infile, "outfile": outfile, "count": (i2-i1)})
         
         n_finished += (i2 - i1)
-        logger.debug("In total, %d / %d inputs have been fed into jumanpp", n_finished, n)
+        logger.debug(u"In total, %d / %d inputs have been fed into jumanpp", n_finished, n)
     assert n == n_finished, "Total texts analyzed is {}, where the input size is {}".format(n_finished, n)
     # wait until all procs finish
     finished = [False for _ in procs]
@@ -156,15 +157,15 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
                 continue
             res = p["proc"].poll()
             if res is not None:
-                logger.info("Job #%d done. Return code: %s", i+1, res)
+                logger.info(u"Job #%d done. Return code: %s", i+1, res)
                 finished[i] = True
                 p["proc"].communicate()  # kills the process
                 os.remove(p["infile"])
             else:
-                logger.debug("Job #%d is working (Return code is none)", i+1)
+                logger.debug(u"Job #%d is working (Return code is none)", i+1)
         if all(finished):
             if show_progress:
-                print("All jos are completed.")
+                print(u"All jos are completed.")
             break
         
         if show_progress:
@@ -177,7 +178,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
                         for line in f:
                             if line.decode(encoding).strip() == "EOS":
                                 n_finished[i] += 1
-                logger.info("Job #%d. Progress: %d/%d (%.1f%%)",
+                logger.info(u"Job #%d. Progress: %d/%d (%.1f%%)",
                             i+1, n_finished[i], p["count"], 100*n_finished[i]/p["count"])
             n_cur = sum(n_finished)
             t_cur = datetime.now()
@@ -191,7 +192,7 @@ def jumanpp_batch(texts, ids=None, num_procs=1,
                 etc = "???"
                 start["t0"] = t_cur
                 start["n0"] = n_cur
-            print("Completed: %d/%d (%.1f%%) | %.1f per sec | ETC: %s (%s remaining)" % (
+            print(u"Completed: %d/%d (%.1f%%) | %.1f per sec | ETC: %s (%s remaining)" % (
                   n_cur, n, 100*n_cur/n, velocity, etc, remain))
         time.sleep(check_interval)
         
@@ -227,8 +228,8 @@ def make_token(line):
         # The length other than 12 signals that.
         # We will try treating '\' literally to see if 
         # we can get the length 12 by doing so.
-        logger.debug("'%s' has %d items (expected 12)", line, len(items))
-        logger.debug("We will try again with treating '\' literally")
+        logger.debug(u"'%s' has %d items (expected 12)", line, len(items))
+        logger.debug(u"We will try again with treating '\' literally")
         items = shlex.split(line.replace(u"\\", u"\\\\"))
         if items[0] == "@":
             is_alternative = True
@@ -236,9 +237,9 @@ def make_token(line):
         else:
             is_alternative = False
         if len(items) == 12:
-            logger.debug("Item length is now %d, which is good", len(items))
+            logger.debug(u"Item length is now %d, which is good", len(items))
         else:
-            logger.debug("Item length is now %d", len(items))
+            logger.debug(u"Item length is now %d", len(items))
 
     if len(items) != 12:
         logger.warning(u"'%s' has %d items (expected 12)", line, len(items))
@@ -328,7 +329,7 @@ def get_documents(outfile, include_eos=False, encoding="utf8"):
                     doc += line
                 yield (id_, doc)
                 id_, doc = None, u""
-            elif line[0] != "#":
+            elif line[0] != u"#":
                 doc += line
 
 def parse_outfiles(outfiles, encoding="utf8", show_progress=False,
