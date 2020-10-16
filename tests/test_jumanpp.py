@@ -192,7 +192,6 @@ class TestOutParser(unittest.TestCase):
             ids2 = []
             s2 = []
             for i, tokens in parse_outfiles(files, format_func=lambda x: x.surface):
-                print(tokens)
                 ids2.append(i)
                 s2.append("".join(tokens))
         self.assertEqual(len(s), len(s2))
@@ -201,7 +200,7 @@ class TestOutParser(unittest.TestCase):
         
         # ID functionality works only with jumanpp ver.1
         # because comment printing function is dropped in ver.2
-        if self.jumanpp_ver.startswith("1."):
+        if self.jumanpp_ver.startswith(u"1."):
             self.assertEqual(len(ids), len(ids2))
             for a, b in zip(ids, ids2):
                 self.assertEqual(a, b)
